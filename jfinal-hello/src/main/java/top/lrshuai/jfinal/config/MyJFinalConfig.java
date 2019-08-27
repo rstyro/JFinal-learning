@@ -141,13 +141,15 @@ public class MyJFinalConfig extends JFinalConfig {
                     if(!"true".equals(isLogin)){
                         return false;
                     }
-                    //校验的地址，需要带auth 参数过来
-                }else if("/druid/login.html".equals(request.getServletPath())){
-                    String auth = request.getParameter("auth");
+                    //自定定义一个校验的地址，需要带自定义校验 auth 参数过来
+                }else if("/druid/login".equals(request.getServletPath())){
+                    String auth = request.getParameter("username");
                     if("rstyro".equals(auth)){
                         session.setAttribute("isLogin","true");
                         return true;
                     }
+                }else if("/druid/logout".equals(request.getServletPath())){
+                    session.removeAttribute("isLogin");
                 }
                 return true;
             }
