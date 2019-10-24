@@ -9,76 +9,78 @@ import com.demo.common.model.#(className);
  * 描述：
  * 
  */
-public class #(className)Controller extends Controller {
+@RequestMapping("/contract/#(classNameSmall)")
+public class #(className)Controller extends BaseController {
 
-	//private static final Log log = Log.getLog(#(className)Controller.class);
-	
-	static #(className)Service srv = #(className)Service.me;
-	
-	/**
-	 * 列表
-	 * /#(basePath)/#(classNameSmall)/list
-	 */
-	public void list() {
-		setAttr("page", srv.paginate(getParaToInt("p", 1), 40));
-		render("#(classNameSmall)List.html");
-	}
-	
-	/**
-	 * 准备添加
-	 * /#(basePath)/#(classNameSmall)/add
-	 */
-	public void add() {
-		render("#(classNameSmall)Add.html");
-	}
-	
-	/**
-	 * 保存
-	 * /#(basePath)/#(classNameSmall)/save
-	 */
-	@Before({#(className)Validator.class})
-	public void save() {
-		srv.save(getModel(#(className).class));
-		renderJson("isOk", true);
-	}
+
+		@JbootrpcService
+		private #(className)Service #(classNameSmall)Service;
+
+		public void index() {
+			render("main.html");
+		}
 
 	/**
-	 * 准备更新
-	 * /#(basePath)/#(classNameSmall)/edit
-	 */
-	public void edit() {
-		#(className) #(classNameSmall) = srv.findById(getParaToInt("id"));
-		setAttr("#(classNameSmall)", #(classNameSmall));
-		render("#(classNameSmall)Edit.html");
-	}
+	* 表格数据
+	*/
+	public void tableData() {
+		Page<#(className)> result = #(classNameSmall)Service.findPageList(TokenVo.builder()
+			.pageNo(getParaToInt("pageNo", 1))
+			.pageSize(getParaToInt("pageSize", 30))
+			.status(0)
+			.coinType(getParaToInt("coinType"))
+			.keyword(getPara("keyword")).build());
+			if(result.getList() != null && result.getList().size()>0){
+			result.getList().forEach(item->{
+			item.setPreUrl(prefixURL);
+			});
+			}
+			renderJson(new DataTable<#(className)>(result));
+		}
 
-	/**
-	 * 更新
-	 * /#(basePath)/#(classNameSmall)/update
-	 */
-	@Before(#(className)Validator.class)
-	public void update() {
-		srv.update(getModel(#(className).class));
-		renderJson("isOk", true);
-	}
+		public void edit() {
+			#(className) obj =new #(className)();
+			String id = getPara("id");
+			if(StringUtils.isNotBlank(id)){
+				obj = #(classNameSmall)Service.findById(id);
+			}
+			setAttr("#(classNameSmall)",obj);
+			render("update.html");
+		}
 
-	/**
-	 * 查看
-	 * /#(basePath)/#(classNameSmall)/view
-	 */
-	public void view() {
-		#(className) #(classNameSmall) = srv.findById(getParaToInt("id"));
-		setAttr("#(classNameSmall)", #(classNameSmall));
-		render("#(classNameSmall)View.html");
-	}
-	 
-	/**
-	 * 删除
-	 * /#(basePath)/#(classNameSmall)/delete
-	 */
-	public void delete() {
-		srv.delete(getParaToInt("id"));
-		renderJson("isOk", true);
-	}
-	
-}
+		public void del() {
+			Long id = getPara("id");
+			#(className) obj = new #(className)();
+			obj.setId(id);
+			obj.setStatus(1);
+			if(#(classNameSmall)Service.update(obj)){
+			renderJson(RestResult.buildSuccess("修改成功"));
+			return;
+			}
+			renderJson(RestResult.buildError("修改失败"));
+		}
+
+
+		public void update(){
+			#(className) paramet =getBean(CurrencyToken.class,"token");
+			//判断是否已存在相同的币种
+			#(className) vo = new #(className)();
+			#(className) one = #(classNameSmall)Service.findOne(vo);
+			System.out.println("one==="+one);
+			if(one != null && !one.getId().equals(paramet.getId())){
+			renderJson(RestResult.buildError("币种已存在"));
+			return;
+			}
+			//保存时设置创建时间
+			if(paramet.getCreateTime() == null){
+				paramet.setCreateTime(new Date());
+			}
+
+			if(#(classNameSmall)Service.saveOrUpdate(token)){
+				renderJson(RestResult.buildSuccess("修改成功"));
+				return;
+			}
+			renderJson(RestResult.buildError("修改失败"));
+
+		}
+ }

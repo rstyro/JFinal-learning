@@ -1,0 +1,81 @@
+#("#")include("/template/common/layout/_page_layout.html")
+#("#")@layout()
+
+#("#")define css()
+    <style>
+
+    </style>
+#("#")end
+
+#("#")define js()
+    <script type="text/javascript">
+        var updateUrl = '#("#")(ctxPath)/contract/#(classNameSmall)/update';
+        layui.use(['form', 'layer'], function () {
+            // 操作对象
+            var form = layui.form
+                    , layer = layui.layer
+                    , $ = layui.jquery;
+            form.on('submit(sub)', function(data){
+                util.sendAjax ({
+                    type: 'POST',
+                    url: updateUrl,
+                    data: $('#addForm').serialize(),
+                    loadFlag: true,
+                    success : function(data){
+                        pop_close();
+                    }
+                });
+                return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+            });
+
+            // form.on('select(contractCoinName)', function (data) {
+            //     $("#("#")contractCoinId").val(data.elem[data.elem.selectedIndex].dataset.id);
+            // });
+
+        });
+    </script>
+#("#")end
+
+#("#")define content()
+    <div class="x-body">
+        <form id="addForm" class="layui-form" action="">
+
+
+            #for(x : tablemeta.columnMetas)
+                #if(x.isPrimaryKey == 'PRI' || x.name.contains("Id"))
+                    <input type="hidden" id="#(x.name)" name="#(classNameSmall).#(x.name)" value='#("#")(#(classNameSmall).#(x.name))'>
+
+                #else if(x.name.contains("type") || x.name.contains("Type") || x.name.contains("status"))
+                    <div class="layui-form-item">
+                        <label class="layui-form-label"><em class="require-mark">*</em>#(x.remarks)</label>
+                        <div class="layui-input-block">
+                            <select name="#(classNameSmall).#(x.name)"  lay-search="">
+                                <option value="0" #("#")if(0 == #(classNameSmall).#(x.name)) selected="selected" #("#")end>正常</option>
+                                <option value="1" #("#")if(1 == #(classNameSmall).#(x.name)) selected="selected" #("#")end>删除</option>
+                            </select>
+                        </div>
+                    </div>
+                #else
+                    <div class="layui-form-item">
+                        <label class="layui-form-label"><em class="require-mark">*</em>#(x.remarks)</label>
+                        <div class="layui-input-block">
+                            #if(x.type.contains("INT"))
+                                <input type="number" name="#(classNameSmall).#(x.name)" placeholder="#(x.remarks)"class="layui-input"  lay-verify="required"  value='#("#")(#(classNameSmall).#(x.name))'    autocomplete="off" />
+                            #else
+                                <input type="text" name="#(classNameSmall).#(x.name)" placeholder="#(x.remarks)"class="layui-input"  lay-verify="required"  value='#("#")(#(classNameSmall).#(x.name))'    autocomplete="off" />
+                            #end
+                        </div>
+                    </div>
+                #end
+
+            #end
+
+            <div  id="confirm" class="layui-form-item">
+                <label class="layui-form-label"></label>
+                    <button id=""  class="layui-btn" lay-filter="sub" lay-submit>
+                        确认
+                    </button>
+            </div>
+        </form>
+    </div>
+#("#")end

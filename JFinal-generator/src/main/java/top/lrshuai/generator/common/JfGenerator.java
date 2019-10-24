@@ -7,10 +7,12 @@ import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.IPlugin;
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.dialect.MysqlDialect;
+import com.jfinal.plugin.activerecord.generator.ColumnMeta;
 import com.jfinal.plugin.activerecord.generator.DataDictionaryGenerator;
 import com.jfinal.plugin.activerecord.generator.MetaBuilder;
 import com.jfinal.plugin.activerecord.generator.TableMeta;
 import top.lrshuai.generator.config.MyJFinalConfig;
+import top.lrshuai.generator.utils.Tools;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -28,8 +30,8 @@ public class JfGenerator {
     protected String packageBase    = Consts.controllerPackageName;
     protected String srcFolder      = "src";
     protected String viewFolder     = "template/page/";
-    protected String basePath       = "";
-    
+    protected String basePath       = "test";
+
     public JfGenerator setPackageBase(String packageBase){
         this.packageBase = packageBase;
         return this;
@@ -185,7 +187,7 @@ public class JfGenerator {
      * */
     public JfGenerator htmlRender(String className, String tableName){
         TableMeta tablemeta = getTableMeta(tableName);
-        
+        System.out.println("tableMETA="+tablemeta);
         return htmlList(className, tablemeta);
     }
 
@@ -200,8 +202,10 @@ public class JfGenerator {
         String packages = toPackages(className);
         String classNameSmall = toClassNameSmall(className);
         String basePathUrl = basePath.replace('.', '/');
-        
-        jfEngine.render("/html/list.html", 
+
+        lineToHump(tablemeta);
+
+        jfEngine.render("/html/main.html",
                 Kv.by("tablemeta", tablemeta)
                 .set("package", packages)
                 .set("className", className)
@@ -214,11 +218,37 @@ public class JfGenerator {
                 .append(StrKit.isBlank(viewFolder) ? "" : viewFolder)
                 .append(StrKit.isBlank(viewFolder) ? "" : "/")
                 .append(classNameSmall)
-                .append("/")
-                .append(classNameSmall)
-                .append("List.html")
+                .append("/main.html")
                 );
+
+        //update
+        jfEngine.render("/html/update.html",
+                Kv.by("tablemeta", tablemeta)
+                        .set("package", packages)
+                        .set("className", className)
+                        .set("classNameSmall", classNameSmall)
+                        .set("basePath", basePathUrl )
+                ,
+                new StringBuilder()
+                        .append(getResourcesPath())
+                        .append("/")
+                        .append(StrKit.isBlank(viewFolder) ? "" : viewFolder)
+                        .append(StrKit.isBlank(viewFolder) ? "" : "/")
+                        .append(classNameSmall)
+                        .append("/update.html")
+        );
         return this;
+    }
+
+    //下划线转驼峰
+    public void lineToHump(TableMeta tableMeta){
+        List<ColumnMeta> columnMetas=tableMeta.columnMetas;
+        for(ColumnMeta columnMeta:columnMetas){
+            String srcName = columnMeta.name;
+            String lineToHumpName = Tools.lineToHump(srcName);
+            columnMeta.name=lineToHumpName;
+        }
+
     }
 
     public StringBuilder getProjectPath(){
